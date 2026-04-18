@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turnero — Cooperativa Cootraban</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --g:#1a5c2a;--g2:#0d3318;--y:#f5a800;--gl:#e8f5e9;
+    --bg:#f5f5f2;--surface:#ffffff;--border:#e0e0d8;
+    --text:#1a1a18;--text2:#5a5a55;--text3:#9a9a94;
+    --radius:10px;--radius-lg:14px;
+  }
+  body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+  /* NAV */
+  .nav{display:flex;align-items:center;gap:6px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .nav .brand{font-size:15px;font-weight:600;color:var(--g);margin-right:12px}
+  .nb{padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s}
+  .nb.act{background:var(--g);color:#fff;border-color:var(--g);font-weight:600}
+  .nb:hover:not(.act){background:var(--gl)}
+  .nb.reset{margin-left:auto;color:var(--text3);font-size:12px}
+
+  /* Indicador conexión */
+  #conn-dot{width:9px;height:9px;border-radius:50%;background:#ccc;display:inline-block;margin-left:auto;margin-right:4px;transition:background .3s}
+  #conn-dot.ok{background:#4caf50;box-shadow:0 0 5px #4caf5088}
+  #conn-dot.err{background:#e53935}
+  #conn-label{font-size:11px;color:var(--text3);margin-right:10px}
+
+  .sc{display:none;padding:20px}.sc.vis{display:block}
+
+  /* ===== CLIENTE ===== */
+  .cli-logo{text-align:center;margin-bottom:28px;padding-top:10px}
+  .cli-logo .logo-box{display:inline-flex;align-items:center;gap:12px;margin-bottom:10px}
+  .cli-logo .logo-icon{width:52px;height:52px;background:var(--g);border-radius:12px;display:flex;align-items:center;justify-content:center}
+  .cli-logo .logo-icon svg{width:30px;height:30px;fill:#fff}
+  .cli-logo .name{font-size:24px;font-weight:700;color:var(--g)}
+  .cli-logo .sub{font-size:15px;color:var(--text2)}
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:800px;margin:0 auto 24px}
+  .cat-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-lg);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
+  .cat-card:hover,.cat-card:active{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+  .cat-card.asesor:hover{border-color:#1784a6}
+  .cat-card.tesorer:hover{border-color:#f5a800}
+  .cat-card.solidar:hover{border-color:#1d9e75}
+  .cat-icon-box{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700}
+  .cat-name{font-size:18px;font-weight:700;margin-bottom:6px}
+  .cat-desc{font-size:13px;color:var(--text2);line-height:1.4}
+  .cat-wait{display:inline-block;margin-top:12px;padding:3px 12px;border-radius:20px;font-size:12px;background:var(--bg);color:var(--text3)}
+  .tkt-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center}
+  .tkt-overlay.show{display:flex}
+  .tkt-card{background:var(--surface);border-radius:var(--radius-lg);padding:36px 40px;text-align:center;min-width:280px;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+  .tkt-card .tc-label{font-size:13px;color:var(--text3);margin-bottom:8px;letter-spacing:.5px}
+  .tkt-card .tc-num{font-size:80px;font-weight:700;line-height:1;margin-bottom:6px}
+  .tkt-card .tc-serv{font-size:15px;color:var(--text2);margin-bottom:4px}
+  .tkt-card .tc-msg{font-size:13px;color:var(--text3);margin-bottom:24px}
+  .tkt-card .tc-btn{padding:10px 32px;background:var(--g);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer}
+  .tkt-card .tc-btn:hover{opacity:.88}
+  .tkt-card .tc-divider{border:none;border-top:1px dashed var(--border);margin:16px 0}
+  .tkt-card .tc-footer{font-size:11px;color:var(--text3)}
+
+  /* ===== OPERADOR ===== */
+  .op-login-wrap{max-width:420px;margin:20px auto}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+  .card h2{font-size:17px;font-weight:700;margin-bottom:18px;color:var(--text)}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;font-weight:500}
+  .field select,.field input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--text);outline:none}
+  .field select:focus,.field input:focus{border-color:var(--g)}
+  .btn-g{padding:11px 20px;background:var(--g);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;width:100%}
+  .btn-g:hover{opacity:.88}
+  .op-dash{display:none}.op-dash.vis{display:block}
+  .op-topbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .op-topbar .badge{padding:5px 12px;border-radius:20px;background:var(--gl);color:var(--g);font-size:13px;font-weight:600;border:1px solid #b5d9be}
+  .op-topbar .btn-out{margin-left:auto;padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;background:var(--surface);color:var(--text3);cursor:pointer}
+  .q-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .q-tab{padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;font-weight:500}
+  .q-tab.act{background:var(--g);color:#fff;border-color:var(--g)}
+  .q-tab:hover:not(.act){background:var(--gl)}
+  .op-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .op-cur-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center}
+  .op-cur-card .lbl{font-size:12px;color:var(--text3);margin-bottom:6px;letter-spacing:.3px}
+  .op-cur-card .cnum{font-size:56px;font-weight:700;line-height:1.1;color:var(--g)}
+  .op-cur-card .ccat{font-size:13px;color:var(--text2);margin-top:4px}
+  .op-act-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+  .btn-call{padding:12px;background:var(--g);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer}
+  .btn-call:hover{opacity:.88}
+  .btn-recall{padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:13px;color:var(--text2);cursor:pointer}
+  .btn-recall:hover{background:var(--bg)}
+  .btn-del{padding:10px;border:1px solid #f09595;border-radius:var(--radius);background:var(--surface);font-size:13px;color:#a32d2d;cursor:pointer}
+  .btn-del:hover{background:#fcebeb}
+  .q-list-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px}
+  .q-list-card .ql-hd{font-size:13px;color:var(--text3);margin-bottom:10px}
+  .q-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+  .q-item:last-child{border-bottom:none}
+  .q-item .qi-code{font-size:15px;font-weight:700}
+  .q-item .qi-cat{font-size:12px;color:var(--text2)}
+  .q-item .qi-del{padding:3px 10px;border:1px solid #f09595;border-radius:var(--radius);font-size:11px;color:#a32d2d;background:transparent;cursor:pointer}
+  .q-item .qi-del:hover{background:#fcebeb}
+  .hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+  .hist-card .ht{font-size:12px;color:var(--text3);margin-bottom:8px}
+  .htags{display:flex;gap:6px;flex-wrap:wrap}
+  .htag{padding:3px 10px;border-radius:20px;border:1px solid var(--border);font-size:12px;color:var(--text2)}
+  .htag.del{text-decoration:line-through;opacity:.45}
+
+  /* ===== TV ===== */
+  #sc-pantalla{padding:0;background:#0d1f13;min-height:100vh}
+  .tv-wrap{min-height:100vh;display:flex;flex-direction:column}
+  .tv-head{background:var(--g);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  .tv-head .tv-logo{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px}
+  .tv-head .tv-logo-icon{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .tv-head .tv-logo-icon svg{width:18px;height:18px;fill:#fff}
+  .tv-head .tv-time{font-size:16px;color:rgba(255,255,255,.75);font-variant-numeric:tabular-nums;font-weight:500}
+  .tv-body{flex:1;display:grid;grid-template-columns:1.1fr 1fr;gap:0;padding:20px;gap:20px}
+  .tv-lbl{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;font-weight:600}
+  .tv-main-box{background:rgba(255,255,255,.06);border-radius:var(--radius-lg);border:2px solid rgba(245,168,0,.5);padding:24px;text-align:center;margin-bottom:20px}
+  .tv-big{font-size:80px;font-weight:700;line-height:1;animation:blink 1.5s ease-in-out infinite}
+  .tv-bigmod{font-size:16px;color:rgba(255,255,255,.7);margin-top:6px;font-weight:600}
+  .tv-bigcat{font-size:13px;color:rgba(255,255,255,.4);margin-top:3px}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+  .tv-recents{display:flex;flex-direction:column;gap:8px}
+  .tv-rc{background:rgba(255,255,255,.05);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border:.5px solid rgba(255,255,255,.07)}
+  .rc-num{font-size:20px;font-weight:700;color:rgba(255,255,255,.85)}
+  .rc-cat-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+  .pill-A{background:rgba(23,132,166,.3);color:#7dd3f0}
+  .pill-T{background:rgba(245,168,0,.25);color:#f5c842}
+  .pill-S{background:rgba(29,158,117,.3);color:#5dcaa5}
+  .news-card{background:rgba(255,255,255,.05);border-radius:var(--radius-lg);border:.5px solid rgba(255,255,255,.08);padding:18px;margin-bottom:16px;min-height:130px;transition:all .5s}
+  .news-card .n-tag{font-size:10px;color:var(--y);letter-spacing:1px;font-weight:700;margin-bottom:8px}
+  .news-card .n-title{font-size:15px;font-weight:700;color:rgba(255,255,255,.9);line-height:1.4;margin-bottom:6px}
+  .news-card .n-body{font-size:12px;color:rgba(255,255,255,.5);line-height:1.6}
+  .tv-mods{display:flex;flex-direction:column;gap:5px}
+  .tv-mod-row{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;border:.5px solid rgba(255,255,255,.06)}
+  .tv-mod-row .mn{font-size:12px;color:rgba(255,255,255,.45)}
+  .tv-mod-row .mc{font-size:14px;font-weight:700}
+  .tv-mod-row .dot{width:7px;height:7px;border-radius:50%;margin-right:8px;display:inline-block}
+  .dot-on{background:#4caf50;box-shadow:0 0 4px #4caf50}
+  .dot-off{background:rgba(255,255,255,.15)}
+  .tv-ticker{background:rgba(0,0,0,.35);padding:10px 24px;display:flex;align-items:center;gap:14px}
+  .ticker-label{font-size:11px;color:var(--y);font-weight:700;white-space:nowrap;background:rgba(245,168,0,.15);padding:4px 10px;border-radius:6px;letter-spacing:.5px}
+  .ticker-text{font-size:13px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  @media(max-width:600px){
+    .cat-grid{grid-template-columns:1fr}
+    .op-grid{grid-template-columns:1fr}
+    .tv-body{grid-template-columns:1fr}
+    .tv-big{font-size:56px}
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="brand">Cootraban</span>
+  <button class="nb act" onclick="nav('cliente')">Tomar turno</button>
+  <button class="nb" onclick="nav('operador')">Panel operador</button>
+  <button class="nb" onclick="nav('pantalla')">Pantalla TV</button>
+  <span id="conn-dot"></span>
+  <span id="conn-label">Conectando…</span>
+  <button class="nb reset" onclick="resetAll()">&#8635; Reiniciar día</button>
+</div>
+
+<!-- ===== CLIENTE ===== -->
+<div class="sc vis" id="sc-cliente">
+  <div class="cli-logo">
+    <div class="logo-box">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      <div class="name">Cooperativa Cootraban</div>
+    </div>
+    <div class="sub">Selecciona el servicio que necesitas</div>
+  </div>
+  <div class="cat-grid" id="cat-grid"></div>
+</div>
+
+<!-- Ticket modal -->
+<div class="tkt-overlay" id="tkt-overlay">
+  <div class="tkt-card">
+    <div class="tc-label">TU NÚMERO DE TURNO</div>
+    <div class="tc-num" id="tc-num">—</div>
+    <div class="tc-serv" id="tc-serv"></div>
+    <hr class="tc-divider">
+    <div class="tc-msg">Por favor espera a ser llamado.<br>Presta atención a la pantalla.</div>
+    <br>
+    <button class="tc-btn" onclick="closeTkt()">Listo, gracias</button>
+    <div class="tc-footer" style="margin-top:14px">Cooperativa Cootraban Ltda.</div>
+  </div>
+</div>
+
+<!-- ===== OPERADOR ===== -->
+<div class="sc" id="sc-operador">
+  <div class="op-login-wrap" id="op-login-wrap">
+    <div class="card">
+      <h2>Ingreso de operador</h2>
+      <div class="field">
+        <label>Tu módulo</label>
+        <select id="sel-mod">
+          <option value="1">Módulo 1</option><option value="2">Módulo 2</option>
+          <option value="3">Módulo 3</option><option value="4">Módulo 4</option>
+          <option value="5">Módulo 5</option><option value="6">Módulo 6</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Categoría que atiendes</label>
+        <select id="sel-cat">
+          <option value="all">Todas (Asesoría, Tesorería, Solidaridad)</option>
+          <option value="A">Solo Asesoría</option>
+          <option value="T">Solo Tesorería</option>
+          <option value="S">Solo Solidaridad</option>
+        </select>
+      </div>
+      <button class="btn-g" onclick="opLogin()">Entrar al panel</button>
+    </div>
+  </div>
+
+  <div class="op-dash" id="op-dash">
+    <div class="op-topbar">
+      <span class="badge" id="op-badge"></span>
+      <button class="btn-out" onclick="opLogout()">Cambiar módulo</button>
+    </div>
+    <div class="q-tabs" id="q-tabs"></div>
+    <div class="op-grid">
+      <div class="op-cur-card">
+        <div class="lbl">Turno actual</div>
+        <div class="cnum" id="op-cnum">—</div>
+        <div class="ccat" id="op-ccat"></div>
+      </div>
+      <div class="op-act-card">
+        <button class="btn-call" onclick="callNext()">&#9654; Llamar siguiente</button>
+        <button class="btn-recall" onclick="recallCurrent()">&#8635; Rellamar turno</button>
+        <button class="btn-del" onclick="skipCurrent()">&#10005; Eliminar turno actual</button>
+      </div>
+    </div>
+    <div class="q-list-card">
+      <div class="ql-hd">Cola de espera &mdash; <span id="q-count" style="font-weight:700;color:#1a1a18"></span></div>
+      <div id="q-list"></div>
+    </div>
+    <div class="hist-card">
+      <div class="ht">Historial de hoy</div>
+      <div class="htags" id="hist-tags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PANTALLA TV ===== -->
+<div class="sc" id="sc-pantalla">
+  <div class="tv-wrap">
+    <div class="tv-head">
+      <div class="tv-logo">
+        <div class="tv-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        </div>
+        Cooperativa Cootraban Ltda.
+      </div>
+      <div class="tv-time">
+        <span id="tv-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:inline-block;margin-right:6px;animation:blink 1.5s infinite"></span>
+        <span id="tv-time">00:00:00</span>
+      </div>
+    </div>
+    <div class="tv-body">
+      <div class="tv-left">
+        <div class="tv-lbl">Turno en atenci&oacute;n</div>
+        <div class="tv-main-box">
+          <div class="tv-big" id="tv-big" style="color:rgba(255,255,255,.2)">—</div>
+          <div class="tv-bigmod" id="tv-bigmod"></div>
+          <div class="tv-bigcat" id="tv-bigcat"></div>
+        </div>
+        <div class="tv-lbl">Últimos turnos atendidos</div>
+        <div class="tv-recents" id="tv-recents">
+          <div style="font-size:13px;color:rgba(255,255,255,.3);padding:10px 0">Los turnos aparecerán aquí</div>
+        </div>
+      </div>
+      <div class="tv-right">
+        <div class="tv-lbl">Información Cootraban</div>
+        <div class="news-card" id="news-card">
+          <div class="n-tag" id="n-tag">AVISO</div>
+          <div class="n-title" id="n-title">Cargando...</div>
+          <div class="n-body" id="n-body"></div>
+        </div>
+        <div class="tv-lbl" style="margin-top:4px">Estado de módulos</div>
+        <div class="tv-mods" id="tv-mods"></div>
+      </div>
+    </div>
+    <div class="tv-ticker">
+      <span class="ticker-label">COOTRABAN</span>
+      <span class="ticker-text" id="ticker-text"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Datos estáticos ──────────────────────────────────────────────────────────
+const CATS = [
+  {id:'A', name:'Asesoría',    desc:'Créditos, información y orientación al asociado', color:'#1784a6', bkg:'#e6f4f8', ico:'#0c5a73', cls:'asesor'},
+  {id:'T', name:'Tesorería',   desc:'Pagos, recaudos y transacciones financieras',      color:'#b87a00', bkg:'#fef8e6', ico:'#7a5000', cls:'tesorer'},
+  {id:'S', name:'Solidaridad', desc:'Auxilios, beneficios sociales y bienestar',        color:'#0f6e56', bkg:'#e1f5ee', ico:'#084033', cls:'solidar'},
+];
+const MODS = [1,2,3,4,5,6].map(i=>({id:i, name:'Módulo '+i}));
+const NEWS = [
+  {tag:'AVISO',       title:'Asamblea General Ordinaria 2025',        body:'Todos los asociados están cordialmente invitados. La cita es el próximo sábado a las 8:00 a.m. en las instalaciones de la cooperativa.'},
+  {tag:'BENEFICIO',   title:'Seguro de vida colectivo renovado',       body:'Renovamos el seguro de vida colectivo para todos los asociados activos. Consulta coberturas en el módulo de Solidaridad.'},
+  {tag:'NOVEDAD',     title:'Nueva línea de crédito especial',         body:'Disponible con tasas preferenciales para asociados con más de 2 años de antigüedad. Solicítala en Asesoría.'},
+  {tag:'INFORMACIÓN', title:'Horario de atención Cootraban',           body:'Lunes a viernes: 8:00 a.m. – 12:00 m. y 2:00 – 6:00 p.m.  |  Sábados: 8:00 a.m. – 12:00 m.'},
+  {tag:'CAMPAÑA',     title:'Ahorro programado Cootraban',             body:'Inscríbete en nuestro plan de ahorro programado y obtén mejores condiciones en créditos futuros.'},
+  {tag:'RECORDATORIO',title:'Actualiza tus datos de contacto',         body:'Mantén actualizados tu celular y correo electrónico para recibir comunicados importantes.'},
+];
+const TICKERS = [
+  'Bienvenido a Cooperativa Cootraban — Siempre contigo',
+  'Recuerda actualizar tus datos de contacto para recibir comunicados importantes',
+  'Consulta tu saldo y extractos en el portal del asociado',
+  'Nuevas líneas de crédito disponibles — solicita información en Asesoría',
+  'Gracias por tu fidelidad y confianza en Cooperativa Cootraban',
+  'Por tu bienestar y el de tu familia — Cootraban te acompaña',
+];
+
+// ── Estado local (se sincroniza desde el servidor) ───────────────────────────
+let state = {
+  queues:      {A:[],T:[],S:[]},
+  counters:    {A:0,T:0,S:0},
+  calledByMod: {1:null,2:null,3:null,4:null,5:null,6:null},
+  lastCalled:  null,
+  history:     [],
+};
+
+// Estado de sesión del operador (solo en este equipo)
+let opMod = null, opCat = null, opCurrent = null, qFilter = 'all';
+
+// ── WebSocket ────────────────────────────────────────────────────────────────
+let ws, wsReady = false;
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}`);
+
+  ws.onopen = () => {
+    wsReady = true;
+    setConn(true);
+  };
+
+  ws.onclose = () => {
+    wsReady = false;
+    setConn(false);
+    setTimeout(connectWS, 3000); // reconectar automático
+  };
+
+  ws.onerror = () => {
+    setConn(false);
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'STATE') {
+      state = msg.state;
+      // Si el operador tiene un turno activo, verificar que sigue válido
+      if (opCurrent) {
+        const stillInHistory = state.history.find(h => h.code === opCurrent.code);
+        // Si el turno fue eliminado por otro operador, limpiar
+        if (stillInHistory && stillInHistory.del) opCurrent = null;
+      }
+      renderCliente();
+      renderOpDash();
+      renderTV();
+    }
+
+    if (msg.type === 'TICKET_OK') {
+      // Solo la pestaña que pidió el turno muestra el modal
+      const cat = catObj(msg.cat);
+      const el = document.getElementById('tc-num');
+      el.textContent = msg.code;
+      el.style.color = cat.color;
+      document.getElementById('tc-serv').textContent = cat.name + ' — ' + cat.desc;
+      document.getElementById('tkt-overlay').classList.add('show');
+    }
+
+    if (msg.type === 'NO_TURNS') {
+      alert('No hay turnos en espera para esta categoría');
+    }
+  };
+}
+
+function send(obj) {
+  if (wsReady && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+function setConn(ok) {
+  document.getElementById('conn-dot').className = ok ? 'ok' : 'err';
+  document.getElementById('conn-label').textContent = ok ? 'En red' : 'Sin conexión';
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+function catObj(id){ return CATS.find(c=>c.id===id); }
+
+// ── Navegación ───────────────────────────────────────────────────────────────
+function nav(s){
+  document.querySelectorAll('.sc').forEach(x=>x.classList.remove('vis'));
+  document.getElementById('sc-'+s).classList.add('vis');
+  document.querySelectorAll('.nb').forEach((b,i)=>{
+    b.classList.toggle('act', ['cliente','operador','pantalla'][i]===s);
+  });
+  if(s==='operador') renderOpLogin();
+  if(s==='pantalla') renderTV();
+}
+
+// ── CLIENTE ──────────────────────────────────────────────────────────────────
+function renderCliente(){
+  const g = document.getElementById('cat-grid');
+  g.innerHTML = '';
+  CATS.forEach(c=>{
+    const w = state.queues[c.id].length;
+    const btn = document.createElement('button');
+    btn.className = 'cat-card ' + c.cls;
+    btn.innerHTML = `
+      <div class="cat-icon-box" style="background:${c.bkg}">
+        <span style="font-size:26px;font-weight:800;color:${c.color}">${c.id}</span>
+      </div>
+      <div class="cat-name" style="color:${c.ico}">${c.name}</div>
+      <div class="cat-desc">${c.desc}</div>
+      <span class="cat-wait">${w>0? w+' en espera' : 'Sin espera'}</span>
+    `;
+    btn.onclick = ()=> takeTicket(c.id);
+    g.appendChild(btn);
+  });
+}
+
+function takeTicket(catId){
+  send({ type: 'TAKE_TICKET', cat: catId });
+}
+
+function closeTkt(){
+  document.getElementById('tkt-overlay').classList.remove('show');
+}
+
+// ── OPERADOR ─────────────────────────────────────────────────────────────────
+function renderOpLogin(){
+  document.getElementById('op-login-wrap').style.display = opMod ? 'none' : 'block';
+  document.getElementById('op-dash').classList.toggle('vis', !!opMod);
+  if(opMod) renderOpDash();
+}
+
+function opLogin(){
+  opMod = parseInt(document.getElementById('sel-mod').value);
+  opCat = document.getElementById('sel-cat').value;
+  opCurrent = null;
+  qFilter = opCat;
+  document.getElementById('op-login-wrap').style.display = 'none';
+  document.getElementById('op-dash').classList.add('vis');
+  renderOpDash();
+}
+
+function opLogout(){
+  opMod = null; opCat = null; opCurrent = null;
+  document.getElementById('op-login-wrap').style.display = 'block';
+  document.getElementById('op-dash').classList.remove('vis');
+}
+
+function getQueue(){
+  if(qFilter==='all'){
+    let merged=[];
+    CATS.forEach(c=> state.queues[c.id].forEach(t=> merged.push({code:t,cat:t[0]})));
+    return merged;
+  }
+  return state.queues[qFilter].map(t=>({code:t,cat:t[0]}));
+}
+
+function renderOpDash(){
+  if(!opMod) return;
+  const mod = MODS.find(m=>m.id===opMod);
+  const catLabel = opCat==='all'? 'Todas las categorías' : catObj(opCat).name;
+  document.getElementById('op-badge').textContent = mod.name + ' · ' + catLabel;
+
+  const tabs = document.getElementById('q-tabs');
+  tabs.innerHTML='';
+  [{id:'all',name:'Todas'},...CATS].forEach(c=>{
+    const count = c.id==='all'? Object.values(state.queues).flat().length : state.queues[c.id].length;
+    const btn = document.createElement('button');
+    btn.className = 'q-tab' + (qFilter===c.id?' act':'');
+    btn.textContent = c.name + ' (' + count + ')';
+    btn.onclick = ()=>{ qFilter=c.id; renderOpDash(); };
+    tabs.appendChild(btn);
+  });
+
+  const cur = opCurrent;
+  document.getElementById('op-cnum').textContent = cur? cur.code : '—';
+  document.getElementById('op-cnum').style.color = cur? catObj(cur.cat).color : '#1a5c2a';
+  document.getElementById('op-ccat').textContent = cur? catObj(cur.cat).name : '';
+
+  const filtered = getQueue();
+  document.getElementById('q-count').textContent = filtered.length + ' en espera';
+
+  const ql = document.getElementById('q-list');
+  ql.innerHTML='';
+  if(filtered.length===0){
+    ql.innerHTML='<div style="font-size:13px;color:#9a9a94;padding:10px 0">Sin turnos en espera</div>';
+  } else {
+    filtered.slice(0,10).forEach(t=>{
+      const cat=catObj(t.cat);
+      const row=document.createElement('div');
+      row.className='q-item';
+      row.innerHTML=`<div class="qi-code" style="color:${cat.color}">${t.code}</div><div class="qi-cat">${cat.name}</div><button class="qi-del" onclick="removeQueue('${t.code}','${t.cat}')">Eliminar</button>`;
+      ql.appendChild(row);
+    });
+  }
+
+  const hist = document.getElementById('hist-tags');
+  hist.innerHTML='';
+  if(state.history.length===0){
+    hist.innerHTML='<span style="font-size:13px;color:#9a9a94">Sin historial aún</span>';
+  } else {
+    state.history.slice(0,18).forEach(h=>{
+      const tag=document.createElement('span');
+      const cat=catObj(h.code[0]);
+      tag.className='htag'+(h.del?' del':'');
+      tag.style.borderColor = h.del? '#e0e0d8' : cat.color+'55';
+      tag.style.color = h.del? '#9a9a94' : cat.ico||cat.color;
+      tag.textContent=h.code;
+      hist.appendChild(tag);
+    });
+  }
+}
+
+function callNext(){
+  if(!opMod) return;
+  const cats = opCat==='all'? CATS.map(c=>c.id) : [opCat];
+  // Optimistamente guardar el "próximo" local para mostrar en panel
+  // El servidor responde con STATE actualizado y asigna el código real
+  send({ type: 'CALL_NEXT', mod: opMod, cats });
+  // Actualizar opCurrent cuando llega STATE con lastCalled de este módulo
+  ws.addEventListener('message', function handler(e){
+    const msg = JSON.parse(e.data);
+    if(msg.type==='STATE' && msg.state.lastCalled && msg.state.lastCalled.mod===opMod){
+      opCurrent = { code: msg.state.lastCalled.code, cat: msg.state.lastCalled.cat };
+      ws.removeEventListener('message', handler);
+      renderOpDash();
+    }
+    if(msg.type==='NO_TURNS'){ ws.removeEventListener('message',handler); }
+  });
+}
+
+function recallCurrent(){
+  if(!opCurrent){ alert('No hay turno actual'); return; }
+  send({ type: 'RECALL' });
+}
+
+function skipCurrent(){
+  if(!opCurrent){ alert('No hay turno actual'); return; }
+  if(!confirm('¿Eliminar el turno '+opCurrent.code+'?')) return;
+  send({ type: 'SKIP_CURRENT', code: opCurrent.code, mod: opMod });
+  opCurrent = null;
+  renderOpDash();
+}
+
+function removeQueue(code, cat){
+  send({ type: 'REMOVE_QUEUE', code, cat });
+}
+
+// ── TV ───────────────────────────────────────────────────────────────────────
+function renderTV(){
+  const last = state.lastCalled;
+  const bigEl = document.getElementById('tv-big');
+  const modEl = document.getElementById('tv-bigmod');
+  const catEl = document.getElementById('tv-bigcat');
+
+  if(last){
+    const cat = catObj(last.cat);
+    const mod = MODS.find(m=>m.id===last.mod);
+    bigEl.textContent = last.code;
+    bigEl.style.color = cat.color;
+    modEl.textContent = mod.name;
+    catEl.textContent = cat.name;
+  } else {
+    bigEl.textContent='—';
+    bigEl.style.color='rgba(255,255,255,.2)';
+    modEl.textContent=''; catEl.textContent='';
+  }
+
+  const rec = document.getElementById('tv-recents');
+  rec.innerHTML='';
+  const hist = state.history.filter(h=>!h.del).slice(0,5);
+  if(hist.length===0){
+    rec.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.3);padding:10px 0">Los turnos aparecerán aquí</div>';
+  } else {
+    hist.forEach(h=>{
+      const cat=catObj(h.code[0]);
+      const card=document.createElement('div');
+      card.className='tv-rc';
+      card.innerHTML=`<div class="rc-num" style="color:${cat.color}">${h.code}</div><span class="rc-cat-pill pill-${cat.id}">${cat.name}</span>`;
+      rec.appendChild(card);
+    });
+  }
+
+  const mods = document.getElementById('tv-mods');
+  mods.innerHTML='';
+  MODS.forEach(m=>{
+    const cur = state.calledByMod[m.id];
+    const row = document.createElement('div');
+    row.className='tv-mod-row';
+    const col = cur? (catObj(cur[0])||{color:'#fff'}).color : 'rgba(255,255,255,.2)';
+    row.innerHTML=`<span class="mn"><span class="dot ${cur?'dot-on':'dot-off'}"></span>${m.name}</span><span class="mc" style="color:${col}">${cur||'—'}</span>`;
+    mods.appendChild(row);
+  });
+}
+
+function resetAll(){
+  if(!confirm('¿Reiniciar todos los turnos del día?')) return;
+  send({ type: 'RESET_ALL' });
+  opCurrent = null;
+  nav('cliente');
+}
+
+// ── Noticias y ticker ────────────────────────────────────────────────────────
+let newsIdx=0, tickerIdx=0;
+
+function cycleNews(){
+  const n=NEWS[newsIdx%NEWS.length];
+  document.getElementById('n-tag').textContent=n.tag;
+  document.getElementById('n-title').textContent=n.title;
+  document.getElementById('n-body').textContent=n.body;
+  newsIdx++;
+}
+
+function cycleTicker(){
+  document.getElementById('ticker-text').textContent=TICKERS[tickerIdx%TICKERS.length];
+  tickerIdx++;
+}
+
+function updateClock(){
+  const el=document.getElementById('tv-time');
+  if(!el) return;
+  const now=new Date();
+  el.textContent=pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+}
+
+// ── Arranque ─────────────────────────────────────────────────────────────────
+connectWS();
+renderCliente();
+cycleNews(); cycleTicker();
+setInterval(updateClock,1000);
+setInterval(cycleNews,12000);
+setInterval(cycleTicker,9000);
+updateClock();
+</script>
+</body>
+</html>

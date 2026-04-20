@@ -1,0 +1,15 @@
+{
+  "name": "turnero-cootraban",
+  "version": "2.0.0",
+  "description": "Sistema de turnos profesional — Cooperativa Cootraban",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

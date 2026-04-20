@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Turnero — Cooperativa Cootraban</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Colores Cootraban: verde oscuro, verde claro, naranja/dorado, blanco */
+  --gd:#1a5c2a;   /* verde oscuro logo */
+  --gm:#2e7d32;   /* verde medio */
+  --gl:#e8f5e9;   /* verde claro fondo */
+  --gc:#43a047;   /* verde card */
+  --na:#e8890a;   /* naranja logo */
+  --nb:#fff3e0;   /* naranja claro fondo */
+  --nc:#f5a800;   /* naranja acento */
+
+  --bg:#ffffff;
+  --bg2:#f7f9f7;
+  --surface:#ffffff;
+  --border:#d4e6d6;
+  --border2:#e8e8e4;
+
+  --text:#1a2a1c;
+  --text2:#4a5e4c;
+  --text3:#8a9e8c;
+
+  --red:#c62828;
+  --red-bg:#ffebee;
+  --blue:#1565c0;
+
+  --r:10px;--r2:16px;--r3:20px;
+  --shadow:0 2px 12px rgba(26,92,42,.08);
+  --shadow2:0 4px 24px rgba(26,92,42,.12);
+}
+
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ══ LOGO SVG INLINE ══ */
+.logo-svg{display:block}
+
+/* ══════════════════════════════════
+   BIENVENIDA
+══════════════════════════════════ */
+#welcome{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:40px 20px;
+  background:linear-gradient(160deg,#ffffff 0%,#f0f7f0 50%,#e8f5e9 100%);
+  position:relative;overflow:hidden;
+}
+#welcome::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(232,137,10,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.welcome-logo{text-align:center;margin-bottom:48px;position:relative}
+.welcome-logo img{width:130px;height:auto;margin-bottom:16px;filter:drop-shadow(0 4px 12px rgba(26,92,42,.15))}
+.welcome-logo h1{font-size:22px;font-weight:800;color:var(--gd);letter-spacing:-.3px;margin-bottom:4px}
+.welcome-logo p{font-size:13px;color:var(--text3);font-weight:500}
+
+.welcome-divider{width:60px;height:3px;background:linear-gradient(90deg,var(--gd),var(--na));border-radius:2px;margin:14px auto 0}
+
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;max-width:820px;position:relative}
+@media(max-width:640px){.role-grid{grid-template-columns:1fr;max-width:360px}}
+
+.role-card{
+  background:var(--surface);border:2px solid var(--border);
+  border-radius:var(--r3);padding:36px 24px;text-align:center;cursor:pointer;
+  transition:all .22s;box-shadow:var(--shadow);
+  -webkit-tap-highlight-color:transparent;
+}
+.role-card:hover{border-color:var(--gd);transform:translateY(-5px);box-shadow:var(--shadow2)}
+.role-card:active{transform:translateY(0);box-shadow:var(--shadow)}
+.role-card.highlight{border-color:var(--na);background:linear-gradient(135deg,#fff 60%,var(--nb))}
+.role-card.highlight:hover{border-color:var(--na);box-shadow:0 8px 28px rgba(232,137,10,.2)}
+
+.role-icon{
+  width:76px;height:76px;border-radius:50%;margin:0 auto 18px;
+  display:flex;align-items:center;justify-content:center;font-size:34px;
+}
+.role-name{font-size:17px;font-weight:800;color:var(--gd);margin-bottom:6px}
+.role-desc{font-size:12px;color:var(--text3);line-height:1.5}
+.role-badge{
+  display:inline-block;margin-top:12px;padding:3px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;background:var(--gl);color:var(--gd);border:1px solid var(--border);
+}
+
+/* ══════════════════════════════════
+   APP
+══════════════════════════════════ */
+#app{display:none;min-height:100vh;flex-direction:column}
+#app.visible{display:flex}
+
+.topbar{
+  background:var(--gd);color:#fff;
+  padding:0 20px;display:flex;align-items:center;gap:12px;height:52px;
+  box-shadow:0 2px 10px rgba(0,0,0,.15);position:sticky;top:0;z-index:50;
+}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-brand img{height:30px;width:auto;filter:brightness(0) invert(1);opacity:.9}
+.topbar-brand span{font-size:13px;font-weight:700;opacity:.85}
+.topbar-role{
+  font-size:11px;font-weight:700;letter-spacing:.4px;
+  background:rgba(255,255,255,.18);padding:3px 10px;border-radius:20px;color:rgba(255,255,255,.9);
+}
+.topbar-conn{display:flex;align-items:center;gap:5px;margin-left:auto;font-size:11px;color:rgba(255,255,255,.5)}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:#9e9e9e;transition:background .3s}
+.conn-dot.ok{background:#69f0ae;box-shadow:0 0 6px #69f0ae66}
+.conn-dot.err{background:#ff5252}
+.btn-exit{
+  margin-left:10px;padding:5px 12px;border:1px solid rgba(255,255,255,.25);
+  border-radius:var(--r);background:transparent;color:rgba(255,255,255,.7);
+  font-size:11px;cursor:pointer;transition:all .15s;font-family:inherit;
+}
+.btn-exit:hover{background:rgba(255,255,255,.12);color:#fff}
+
+/* ══════════════════════════════════
+   VISTA CLIENTE
+══════════════════════════════════ */
+#view-cliente{padding:32px 20px;max-width:900px;margin:0 auto;width:100%}
+
+.cli-hero{text-align:center;margin-bottom:36px}
+.cli-hero h2{font-size:22px;font-weight:800;color:var(--gd);margin-bottom:8px}
+.cli-hero p{font-size:14px;color:var(--text2)}
+
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.cat-card{
+  background:var(--surface);border:2px solid var(--border);
+  border-radius:var(--r2);padding:32px 20px;text-align:center;cursor:pointer;
+  transition:all .2s;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;
+}
+.cat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.cat-card:active{transform:translateY(0)}
+.cat-icon{width:72px;height:72px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900}
+.cat-name{font-size:20px;font-weight:800;margin-bottom:6px}
+.cat-desc{font-size:13px;color:var(--text2);line-height:1.4;margin-bottom:14px}
+.cat-wait{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600}
+
+/* ── MODAL TICKET ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(26,42,28,.5);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.show{display:flex}
+.tkt-card{
+  background:#fff;border-radius:var(--r3);min-width:300px;max-width:400px;width:90%;
+  box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;animation:popIn .25s ease;
+}
+@keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+.tkt-top{padding:30px 28px 22px;text-align:center;border-bottom:2px dashed var(--border)}
+.tkt-lbl{font-size:10px;letter-spacing:2px;font-weight:700;color:var(--text3);margin-bottom:10px}
+.tkt-num{font-size:92px;font-weight:900;line-height:1;margin-bottom:4px}
+.tkt-serv{font-size:13px;color:var(--text2);font-weight:600}
+.tkt-bot{padding:22px 28px}
+.tkt-msg{font-size:13px;color:var(--text3);line-height:1.65;text-align:center;margin-bottom:18px}
+.tkt-btns{display:flex;gap:10px}
+.btn-print{
+  flex:1;padding:12px;border:1.5px solid var(--border);border-radius:var(--r);
+  background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);
+  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;
+}
+.btn-print:hover{background:var(--bg2);border-color:var(--gd)}
+.btn-ok{
+  flex:2;padding:12px;border:none;border-radius:var(--r);
+  background:var(--gd);color:#fff;font-size:14px;font-weight:800;cursor:pointer;
+  font-family:inherit;transition:opacity .15s;
+}
+.btn-ok:hover{opacity:.88}
+.tkt-brand{text-align:center;font-size:10px;color:var(--text3);margin-top:12px}
+
+/* ══════════════════════════════════
+   VISTA OPERADOR
+══════════════════════════════════ */
+#view-operador{padding:20px;max-width:940px;margin:0 auto;width:100%}
+
+.op-login{max-width:440px;margin:24px auto}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:24px;box-shadow:var(--shadow)}
+.card h2{font-size:17px;font-weight:800;color:var(--gd);margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+.field select,.field input{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);
+  font-size:14px;background:var(--bg2);color:var(--text);outline:none;font-family:inherit;
+  transition:border-color .15s;
+}
+.field select:focus,.field input:focus{border-color:var(--gd)}
+.btn-primary{
+  width:100%;padding:12px;background:var(--gd);color:#fff;border:none;
+  border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s;
+}
+.btn-primary:hover{opacity:.88}
+
+.op-dash{display:none}
+.op-dash.vis{display:block}
+
+.op-topbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.badge-mod{padding:6px 14px;border-radius:20px;background:var(--gl);color:var(--gd);font-size:13px;font-weight:700;border:1px solid var(--border)}
+.btn-sm{
+  padding:6px 13px;border:1.5px solid var(--border);border-radius:var(--r);
+  font-size:12px;background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .15s;font-weight:600;
+}
+.btn-sm:hover{background:var(--bg2);border-color:var(--gm)}
+.btn-sm.danger{border-color:#ffcdd2;color:var(--red)}
+.btn-sm.danger:hover{background:var(--red-bg)}
+
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.metric .mv{font-size:28px;font-weight:900;color:var(--gd);line-height:1}
+.metric .ml{font-size:10px;color:var(--text3);margin-top:4px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+
+.q-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.q-tab{
+  padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);
+  transition:all .15s;font-weight:600;font-family:inherit;
+}
+.q-tab.act{background:var(--gd);color:#fff;border-color:var(--gd)}
+.q-tab:hover:not(.act){background:var(--gl);border-color:var(--border)}
+
+.op-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:560px){.op-grid{grid-template-columns:1fr}}
+
+.cur-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:22px;text-align:center;box-shadow:var(--shadow)}
+.cur-lbl{font-size:10px;letter-spacing:1.5px;color:var(--text3);margin-bottom:8px;font-weight:700;text-transform:uppercase}
+.cur-num{font-size:62px;font-weight:900;line-height:1;color:var(--gd)}
+.cur-cat{font-size:13px;color:var(--text2);margin-top:4px;font-weight:600}
+.cur-timer{font-size:11px;color:var(--na);margin-top:8px;font-weight:700;background:var(--nb);display:inline-block;padding:3px 10px;border-radius:20px}
+
+.act-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:20px;display:flex;flex-direction:column;gap:9px;justify-content:center;box-shadow:var(--shadow)}
+.btn-call{
+  padding:14px;background:var(--gd);color:#fff;border:none;border-radius:var(--r);
+  font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;
+}
+.btn-call:hover{background:var(--gm);box-shadow:0 4px 14px rgba(26,92,42,.3)}
+.btn-recall{padding:10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}
+.btn-recall:hover{background:var(--bg2)}
+.btn-close{padding:10px;border:1.5px solid #a5d6a7;border-radius:var(--r);background:#f1f8e9;font-size:13px;color:#2e7d32;cursor:pointer;font-weight:700;font-family:inherit;transition:all .15s}
+.btn-close:hover{background:#c8e6c9}
+.btn-skip{padding:10px;border:1.5px solid #ffcdd2;border-radius:var(--r);background:#fff;font-size:13px;color:var(--red);cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}
+.btn-skip:hover{background:var(--red-bg)}
+
+.q-list-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.q-hd{font-size:11px;color:var(--text3);margin-bottom:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.q-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border2)}
+.q-item:last-child{border-bottom:none}
+.qi-code{font-size:15px;font-weight:800}
+.qi-cat{font-size:12px;color:var(--text2);flex:1;font-weight:500}
+.qi-del{padding:3px 10px;border:1px solid #ffcdd2;border-radius:var(--r);font-size:11px;color:var(--red);background:transparent;cursor:pointer;font-family:inherit;font-weight:600}
+.qi-del:hover{background:var(--red-bg)}
+
+.hist-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:16px;box-shadow:var(--shadow)}
+.hist-lbl{font-size:10px;color:var(--text3);margin-bottom:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.htags{display:flex;gap:6px;flex-wrap:wrap}
+.htag{padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:700}
+.htag.done{opacity:.3;text-decoration:line-through}
+
+/* ══ REPORTES ══ */
+.rpt-panel{margin-top:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:22px;box-shadow:var(--shadow)}
+.rpt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.rpt-title{font-size:16px;font-weight:800;color:var(--gd)}
+.rpt-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-export{
+  padding:8px 14px;border-radius:var(--r);font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;border:none;display:flex;align-items:center;gap:6px;transition:opacity .15s;
+}
+.btn-export.csv{background:var(--gd);color:#fff}
+.btn-export.csv:hover{opacity:.88}
+.btn-export.pdf{background:var(--blue);color:#fff}
+.btn-export.pdf:hover{opacity:.88}
+
+.rpt-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:560px){.rpt-kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:16px;text-align:center;border:1.5px solid var(--border)}
+.kpi .kv{font-size:28px;font-weight:900;color:var(--gd);line-height:1}
+.kpi .kl{font-size:10px;color:var(--text3);margin-top:4px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+
+.rpt-section{margin-bottom:18px}
+.rpt-section-title{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--text3);margin-bottom:8px;text-transform:uppercase}
+.rpt-table{width:100%;border-collapse:collapse;font-size:12px}
+.rpt-table th{text-align:left;padding:8px 10px;background:var(--bg2);color:var(--text2);font-weight:700;border-bottom:2px solid var(--border);font-size:11px;letter-spacing:.3px}
+.rpt-table td{padding:8px 10px;border-bottom:1px solid var(--border2);color:var(--text);vertical-align:middle}
+.rpt-table tr:last-child td{border-bottom:none}
+.rpt-table tr:hover td{background:#f7fbf7}
+.sp{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.sp-wait{background:#fff8e1;color:#f57f17}
+.sp-attend{background:var(--gl);color:var(--gd)}
+.sp-done{background:#e8f5e9;color:#1b5e20}
+.sp-skip{background:var(--red-bg);color:var(--red)}
+
+/* ══════════════════════════════════
+   VISTA TV — fondo BLANCO
+══════════════════════════════════ */
+#view-tv{flex:1;background:#f7f9f7;display:flex;flex-direction:column;min-height:calc(100vh - 52px)}
+
+.tv-head{
+  background:var(--gd);padding:16px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.tv-brand{display:flex;align-items:center;gap:14px}
+.tv-brand img{height:36px;width:auto;filter:brightness(0) invert(1)}
+.tv-brand-name{font-size:17px;font-weight:800;color:#fff}
+.tv-brand-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px}
+.tv-clock{font-size:22px;color:#fff;font-variant-numeric:tabular-nums;font-weight:700}
+
+.tv-body{flex:1;display:grid;grid-template-columns:1.3fr 1fr;gap:20px;padding:24px}
+@media(max-width:700px){.tv-body{grid-template-columns:1fr}}
+
+.tv-lbl{
+  font-size:10px;color:var(--text3);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:12px;font-weight:700;
+}
+
+.tv-main-box{
+  background:#fff;border-radius:var(--r2);padding:32px;text-align:center;
+  margin-bottom:22px;border:2px solid var(--border);
+  box-shadow:0 0 0 4px rgba(232,137,10,.08);
+}
+.tv-big{
+  font-size:110px;font-weight:900;line-height:1;
+  animation:tvPulse 1.8s ease-in-out infinite;
+}
+@keyframes tvPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.75;transform:scale(.97)}}
+.tv-bigmod{font-size:18px;color:var(--text2);margin-top:10px;font-weight:700}
+.tv-bigcat{font-size:14px;color:var(--text3);margin-top:4px;font-weight:600}
+
+.tv-recents{display:flex;flex-direction:column;gap:8px}
+.tv-rc{
+  background:#fff;border-radius:var(--r);padding:11px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1.5px solid var(--border);box-shadow:var(--shadow);
+}
+.rc-num{font-size:20px;font-weight:800}
+.rc-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700}
+.pill-A{background:#e3f2fd;color:#1565c0}
+.pill-T{background:var(--nb);color:#e65100}
+.pill-S{background:var(--gl);color:var(--gd)}
+
+.news-card{
+  background:#fff;border-radius:var(--r2);border:1.5px solid var(--border);
+  padding:20px;margin-bottom:18px;min-height:130px;box-shadow:var(--shadow);
+}
+.n-tag{font-size:10px;color:var(--na);letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
+.n-title{font-size:16px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:6px}
+.n-body{font-size:13px;color:var(--text2);line-height:1.6}
+
+.tv-mods{display:flex;flex-direction:column;gap:6px}
+.tv-mod-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;background:#fff;border-radius:var(--r);
+  border:1.5px solid var(--border);box-shadow:var(--shadow);
+}
+.tv-mn{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px;font-weight:600}
+.tv-mc{font-size:15px;font-weight:800}
+.mod-dot{width:8px;height:8px;border-radius:50%}
+.mod-dot.on{background:#43a047;box-shadow:0 0 6px #43a04766}
+.mod-dot.off{background:var(--border)}
+
+.tv-ticker{
+  background:var(--gd);padding:12px 28px;
+  display:flex;align-items:center;gap:16px;
+}
+.ticker-badge{
+  font-size:10px;color:var(--gd);font-weight:800;white-space:nowrap;
+  background:#fff;padding:4px 12px;border-radius:6px;letter-spacing:.5px;flex-shrink:0;
+}
+.ticker-text{font-size:13px;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ══ SONIDO TV ══ */
+.sound-toggle{
+  display:flex;align-items:center;gap:6px;cursor:pointer;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:20px;padding:4px 12px;color:#fff;font-size:11px;font-weight:700;
+  transition:background .15s;user-select:none;
+}
+.sound-toggle:hover{background:rgba(255,255,255,.22)}
+.sound-icon{font-size:14px}
+
+/* ══ IMPRESIÓN ══ */
+@media print{
+  body > *{display:none!important}
+  #print-area{display:block!important}
+}
+#print-area{display:none}
+.print-ticket{
+  width:72mm;margin:0 auto;font-family:'Courier New',monospace;
+  font-size:11px;text-align:center;padding:6mm;
+}
+.pt-logo{font-size:13px;font-weight:700;margin-bottom:1mm}
+.pt-sub{font-size:9px;margin-bottom:4mm;border-bottom:1px dashed #000;padding-bottom:3mm}
+.pt-label{font-size:9px;letter-spacing:1px;margin-bottom:1mm;text-transform:uppercase}
+.pt-num{font-size:38px;font-weight:700;line-height:1;margin-bottom:2mm}
+.pt-serv{font-size:10px;font-weight:700;margin-bottom:4mm;border-bottom:1px dashed #000;padding-bottom:3mm}
+.pt-info{font-size:9px;line-height:1.7;margin-bottom:3mm;text-align:left;white-space:pre-line}
+.pt-footer{font-size:8px;color:#555;margin-top:3mm;border-top:1px dashed #000;padding-top:2mm}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ÁREA DE IMPRESIÓN -->
+<div id="print-area">
+  <div class="print-ticket">
+    <div class="pt-logo">COOPERATIVA COOTRABAN</div>
+    <div class="pt-sub">Apartadó, Antioquia</div>
+    <div class="pt-label">Su número de turno</div>
+    <div class="pt-num" id="pt-num">—</div>
+    <div class="pt-serv" id="pt-serv">—</div>
+    <div class="pt-info" id="pt-info"></div>
+    <div class="pt-footer">Gracias por su visita · Cootraban</div>
+  </div>
+</div>
+
+<!-- ══════════════ BIENVENIDA ══════════════ -->
+<div id="welcome">
+  <div class="welcome-logo">
+    <!-- Logo Cootraban en base64 embebido -->
+    <img id="welcome-img" src="" alt="Cooperativa Cootraban">
+    <h1>Cooperativa Cootraban</h1>
+    <p>Sistema de Atención al Asociado — Apartadó</p>
+    <div class="welcome-divider"></div>
+  </div>
+
+  <div class="role-grid">
+    <div class="role-card highlight" onclick="setRole('cliente')">
+      <div class="role-icon" style="background:#fff3e0">🎫</div>
+      <div class="role-name">Tomar Turno</div>
+      <div class="role-desc">Solicita tu número de turno para ser atendido hoy</div>
+      <span class="role-badge">Para asociados</span>
+    </div>
+    <div class="role-card" onclick="setRole('operador')">
+      <div class="role-icon" style="background:var(--gl)">🖥️</div>
+      <div class="role-name">Panel Asesor</div>
+      <div class="role-desc">Llama y gestiona turnos desde tu módulo de atención</div>
+      <span class="role-badge">Para asesores</span>
+    </div>
+    <div class="role-card" onclick="setRole('tv')">
+      <div class="role-icon" style="background:var(--gl)">📺</div>
+      <div class="role-name">Pantalla TV</div>
+      <div class="role-desc">Vista de sala de espera para pantalla grande o TV</div>
+      <span class="role-badge">Para pantalla</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <img id="topbar-img" src="" alt="Cootraban">
+      <span>Cootraban</span>
+    </div>
+    <span class="topbar-role" id="topbar-role">—</span>
+    <div class="topbar-conn">
+      <div class="conn-dot" id="conn-dot"></div>
+      <span id="conn-label">Conectando…</span>
+    </div>
+    <button class="btn-exit" onclick="exitRole()">← Salir</button>
+  </div>
+
+  <!-- CLIENTE -->
+  <div id="view-cliente" class="hidden">
+    <div class="cli-hero">
+      <h2>¿Qué trámite vas a realizar hoy?</h2>
+      <p>Toca el servicio que necesitas para recibir tu turno</p>
+    </div>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
+
+  <!-- OPERADOR -->
+  <div id="view-operador" class="hidden">
+    <div class="op-login" id="op-login">
+      <div class="card">
+        <h2>Ingreso de Asesor</h2>
+        <div class="field">
+          <label>Tu módulo</label>
+          <select id="sel-mod">
+            <option value="1">Módulo 1</option><option value="2">Módulo 2</option>
+            <option value="3">Módulo 3</option><option value="4">Módulo 4</option>
+            <option value="5">Módulo 5</option><option value="6">Módulo 6</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Categoría que atiendes</label>
+          <select id="sel-cat">
+            <option value="all">Todas (Asesoría, Tesorería, Solidaridad)</option>
+            <option value="A">Solo Asesoría</option>
+            <option value="T">Solo Tesorería</option>
+            <option value="S">Solo Solidaridad</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="opLogin()">Entrar al panel →</button>
+      </div>
+    </div>
+
+    <div class="op-dash" id="op-dash">
+      <div class="op-topbar">
+        <span class="badge-mod" id="op-badge">—</span>
+        <button class="btn-sm" onclick="opLogout()">Cambiar módulo</button>
+        <button class="btn-sm" onclick="toggleReporte()">📊 Reportes</button>
+        <button class="btn-sm danger" onclick="resetAll()" style="margin-left:auto">↺ Reiniciar día</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="mv" id="m-total">0</div><div class="ml">Emitidos hoy</div></div>
+        <div class="metric"><div class="mv" id="m-atend">0</div><div class="ml">Atendidos</div></div>
+        <div class="metric"><div class="mv" id="m-espera">0</div><div class="ml">En espera</div></div>
+        <div class="metric"><div class="mv" id="m-avgwait">—</div><div class="ml">Espera prom.</div></div>
+      </div>
+      <div class="q-tabs" id="q-tabs"></div>
+      <div class="op-grid">
+        <div class="cur-card">
+          <div class="cur-lbl">Turno en atención</div>
+          <div class="cur-num" id="op-cnum">—</div>
+          <div class="cur-cat" id="op-ccat"></div>
+          <div class="cur-timer hidden" id="op-timer"></div>
+        </div>
+        <div class="act-card">
+          <button class="btn-call" onclick="callNext()">▶ Llamar siguiente</button>
+          <button class="btn-recall" onclick="recallCurrent()">↺ Rellamar turno</button>
+          <button class="btn-close" onclick="closeTurn()">✔ Atención completada</button>
+          <button class="btn-skip" onclick="skipCurrent()">✕ Saltar / eliminar</button>
+        </div>
+      </div>
+      <div class="q-list-card">
+        <div class="q-hd">Cola de espera — <span id="q-count" style="color:var(--text);font-weight:800">0</span></div>
+        <div id="q-list"></div>
+      </div>
+      <div class="hist-card">
+        <div class="hist-lbl">Historial de hoy</div>
+        <div class="htags" id="hist-tags"></div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="rpt-panel hidden" id="rpt-panel">
+        <div class="rpt-head">
+          <div class="rpt-title">📊 Reporte del día</div>
+          <div class="rpt-actions">
+            <button class="btn-export csv" onclick="downloadCSV()">⬇ Descargar CSV/Excel</button>
+            <button class="btn-export pdf" onclick="window.print()">🖨 Imprimir</button>
+          </div>
+        </div>
+        <div class="rpt-kpis">
+          <div class="kpi"><div class="kv" id="rk-total">0</div><div class="kl">Emitidos</div></div>
+          <div class="kpi"><div class="kv" id="rk-atend">0</div><div class="kl">Atendidos</div></div>
+          <div class="kpi"><div class="kv" id="rk-salt">0</div><div class="kl">Saltados</div></div>
+          <div class="kpi"><div class="kv" id="rk-espera-prom">—</div><div class="kl">Espera prom.</div></div>
+          <div class="kpi"><div class="kv" id="rk-aten-prom">—</div><div class="kl">Atención prom.</div></div>
+          <div class="kpi"><div class="kv" id="rk-cola">0</div><div class="kl">En cola</div></div>
+        </div>
+        <div class="rpt-section">
+          <div class="rpt-section-title">Por categoría</div>
+          <table class="rpt-table">
+            <thead><tr><th>Categoría</th><th>Atendidos</th><th>Espera prom.</th><th>Atención prom.</th></tr></thead>
+            <tbody id="rpt-cat-tbody"></tbody>
+          </table>
+        </div>
+        <div class="rpt-section">
+          <div class="rpt-section-title">Por módulo</div>
+          <table class="rpt-table">
+            <thead><tr><th>Módulo</th><th>Atendidos</th><th>Espera prom.</th><th>Atención prom.</th></tr></thead>
+            <tbody id="rpt-mod-tbody"></tbody>
+          </table>
+        </div>
+        <div class="rpt-section">
+          <div class="rpt-section-title">Detalle turno por turno</div>
+          <div style="overflow-x:auto">
+            <table class="rpt-table" style="min-width:580px">
+              <thead><tr><th>Turno</th><th>Categoría</th><th>Módulo</th><th>Emitido</th><th>Llamado</th><th>Espera</th><th>Atención</th><th>Estado</th></tr></thead>
+              <tbody id="rpt-detail-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /view-operador -->
+
+  <!-- TV -->
+  <div id="view-tv" class="hidden">
+    <div class="tv-head">
+      <div class="tv-brand">
+        <img id="tv-img" src="" alt="Cootraban">
+        <div>
+          <div class="tv-brand-name">Cooperativa Cootraban Ltda.</div>
+          <div class="tv-brand-sub">Sistema de turnos</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="sound-toggle" id="sound-toggle" onclick="toggleSound()">
+          <span class="sound-icon" id="sound-icon">🔊</span>
+          <span id="sound-label">Sonido activo</span>
+        </div>
+        <div class="tv-clock" id="tv-clock">00:00:00</div>
+      </div>
+    </div>
+    <div class="tv-body">
+      <div>
+        <div class="tv-lbl">Turno en atención ahora</div>
+        <div class="tv-main-box">
+          <div class="tv-big" id="tv-big" style="color:var(--border)">—</div>
+          <div class="tv-bigmod" id="tv-bigmod"></div>
+          <div class="tv-bigcat" id="tv-bigcat"></div>
+        </div>
+        <div class="tv-lbl">Últimos turnos llamados</div>
+        <div class="tv-recents" id="tv-recents">
+          <div style="font-size:13px;color:var(--text3);padding:8px 0">Los turnos aparecerán aquí</div>
+        </div>
+      </div>
+      <div>
+        <div class="tv-lbl">Información Cootraban</div>
+        <div class="news-card">
+          <div class="n-tag" id="n-tag">AVISO</div>
+          <div class="n-title" id="n-title">Cargando…</div>
+          <div class="n-body" id="n-body"></div>
+        </div>
+        <div class="tv-lbl">Estado de módulos</div>
+        <div class="tv-mods" id="tv-mods"></div>
+      </div>
+    </div>
+    <div class="tv-ticker">
+      <span class="ticker-badge">COOTRABAN</span>
+      <span class="ticker-text" id="ticker-text"></span>
+    </div>
+  </div>
+</div><!-- /app -->
+
+<!-- MODAL TICKET -->
+<div class="overlay" id="tkt-overlay">
+  <div class="tkt-card">
+    <div class="tkt-top">
+      <div class="tkt-lbl">Tu número de turno</div>
+      <div class="tkt-num" id="tkt-num">—</div>
+      <div class="tkt-serv" id="tkt-serv"></div>
+    </div>
+    <div class="tkt-bot">
+      <div class="tkt-msg">Por favor espera a ser llamado.<br>Presta atención a la pantalla principal de la sala.</div>
+      <div class="tkt-btns">
+        <button class="btn-print" onclick="printTicket()">🖨 Imprimir</button>
+        <button class="btn-ok" onclick="closeTkt()">Listo, gracias</button>
+      </div>
+      <div class="tkt-brand">Cooperativa Cootraban Ltda. · Apartadó, Antioquia</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// LOGO (base64 embebido para que funcione sin archivos externos)
+// Se carga desde la URL del servidor si existe, o usa texto fallback
+// ════════════════════════════════════════════
+(function loadLogo(){
+  // Intenta cargar /logo.png del servidor (si lo subiste)
+  // Si no existe, usa un placeholder SVG con los colores Cootraban
+  const svgLogo = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect width="120" height="80" fill="none"/><circle cx="60" cy="32" r="28" fill="none" stroke="%23e8890a" stroke-width="3"/><polygon points="60,10 48,38 72,38" fill="%231a5c2a"/><polygon points="60,20 44,42 76,42" fill="%232e7d32" opacity="0.8"/><text x="60" y="62" text-anchor="middle" font-family="Arial" font-weight="800" font-size="9" fill="%231a5c2a">COOPERATIVA</text><text x="60" y="74" text-anchor="middle" font-family="Arial" font-weight="800" font-size="9" fill="%23e8890a">COOTRABAN</text></svg>`;
+  ['welcome-img','topbar-img','tv-img'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.src = svgLogo;
+  });
+})();
+
+// ════════════════════════════════════════════
+// DATOS ESTÁTICOS
+// ════════════════════════════════════════════
+const CATS = [
+  {id:'A', name:'Asesoría',    desc:'Créditos, información y orientación al asociado', color:'#1565c0', bkg:'#e3f2fd', ico:'#0d47a1'},
+  {id:'T', name:'Tesorería',   desc:'Pagos, recaudos y transacciones financieras',     color:'#e65100', bkg:'#fff3e0', ico:'#bf360c'},
+  {id:'S', name:'Solidaridad', desc:'Auxilios, beneficios sociales y bienestar',       color:'#1a5c2a', bkg:'#e8f5e9', ico:'#0d3318'},
+];
+const MODS = [1,2,3,4,5,6].map(i=>({id:i,name:'Módulo '+i}));
+const NEWS = [
+  {tag:'AVISO',        title:'Asamblea General Ordinaria 2025',   body:'Todos los asociados están cordialmente invitados. Sábado 8:00 a.m. en las instalaciones de la cooperativa.'},
+  {tag:'BENEFICIO',    title:'Seguro de vida colectivo renovado', body:'Disponible para todos los asociados activos. Consulta coberturas en el módulo de Solidaridad.'},
+  {tag:'NOVEDAD',      title:'Nueva línea de crédito especial',   body:'Tasas preferenciales para asociados con más de 2 años. Solicítala directamente en Asesoría.'},
+  {tag:'INFORMACIÓN',  title:'Horario de atención Cootraban',     body:'Lunes–Viernes 8:00–12:00 y 14:00–18:00 · Sábados 8:00–12:00'},
+  {tag:'CAMPAÑA',      title:'Ahorro programado Cootraban',       body:'Inscríbete y obtén mejores condiciones en créditos futuros. Pregunta en Asesoría.'},
+  {tag:'RECORDATORIO', title:'Actualiza tus datos de contacto',   body:'Mantén actualizados tu celular y correo para recibir comunicados de la cooperativa.'},
+];
+const TICKERS = [
+  'Bienvenido a Cooperativa Cootraban — Siempre contigo en Apartadó',
+  'Recuerda actualizar tus datos de contacto para recibir comunicados importantes',
+  'Consulta tu saldo y extractos en el portal del asociado',
+  'Nuevas líneas de crédito — tasas preferenciales para asociados · Solicita en Asesoría',
+  'Gracias por tu fidelidad y confianza en Cooperativa Cootraban',
+];
+
+// ════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════
+let state = { queues:{A:[],T:[],S:[]}, counters:{A:0,T:0,S:0},
+  calledByMod:{1:null,2:null,3:null,4:null,5:null,6:null}, lastCalled:null, history:[] };
+let report = null;
+let opMod=null, opCat=null, opCurrent=null, qFilter='all';
+let currentRole = null;
+let lastTicket = null;
+let timerInterval=null, timerStart=null;
+
+// ════════════════════════════════════════════
+// SONIDO TV
+// ════════════════════════════════════════════
+let soundEnabled = true;
+let audioCtx = null;
+let prevLastCalled = null; // para detectar turno nuevo en TV
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTurnSound() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    // Secuencia: 3 pitidos ascendentes + tono sostenido
+    const notes = [880, 1100, 1320];
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      const t = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.35, t + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.start(t); osc.stop(t + 0.25);
+    });
+  } catch(e) { /* silenciar errores de audio */ }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-icon').textContent  = soundEnabled ? '🔊' : '🔇';
+  document.getElementById('sound-label').textContent = soundEnabled ? 'Sonido activo' : 'Sonido silenciado';
+  // Si activan el sonido, reproducir un pitido de prueba
+  if (soundEnabled) playTurnSound();
+}
+
+// ════════════════════════════════════════════
+// WEBSOCKET
+// ════════════════════════════════════════════
+let ws, wsReady = false;
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}`);
+  ws.onopen  = ()=>{ wsReady=true; setConn(true); };
+  ws.onclose = ()=>{ wsReady=false; setConn(false); setTimeout(connectWS,3000); };
+  ws.onerror = ()=> setConn(false);
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'STATE') {
+      const prevCode = state.lastCalled ? state.lastCalled.code : null;
+      state = msg.state;
+
+      // Detectar turno nuevo en TV → sonar
+      if (currentRole === 'tv') {
+        const newCode = state.lastCalled ? state.lastCalled.code : null;
+        if (newCode && newCode !== prevCode) playTurnSound();
+      }
+
+      if (opCurrent) {
+        const h = state.history.find(h=>h.code===opCurrent.code);
+        if (h && h.del){ opCurrent=null; stopTimer(); }
+      }
+      renderAll();
+    }
+
+    if (msg.type === 'REPORT') {
+      report = msg.report;
+      renderReport();
+      renderMetrics();
+    }
+
+    if (msg.type === 'TICKET_OK') {
+      const cat = catObj(msg.cat);
+      document.getElementById('tkt-num').textContent = msg.code;
+      document.getElementById('tkt-num').style.color = cat.color;
+      document.getElementById('tkt-serv').textContent = cat.name + ' · ' + cat.desc;
+      document.getElementById('tkt-overlay').classList.add('show');
+      lastTicket = msg;
+      preparePrint(msg.code, cat);
+    }
+
+    if (msg.type === 'NO_TURNS') alert('No hay turnos en espera para esta categoría');
+  };
+}
+
+function send(obj){ if(wsReady && ws.readyState===1) ws.send(JSON.stringify(obj)); }
+function setConn(ok){
+  document.getElementById('conn-dot').className='conn-dot '+(ok?'ok':'err');
+  document.getElementById('conn-label').textContent = ok?'En línea':'Sin conexión';
+}
+
+// ════════════════════════════════════════════
+// ROLES
+// ════════════════════════════════════════════
+function setRole(role) {
+  currentRole = role;
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  const rn = {cliente:'🎫 Tomar Turno', operador:'🖥️ Panel Asesor', tv:'📺 Pantalla TV'};
+  document.getElementById('topbar-role').textContent = rn[role];
+  ['cliente','operador','tv'].forEach(r=>{
+    document.getElementById('view-'+r).classList.toggle('hidden', r!==role);
+  });
+  if(role==='cliente')  renderCliente();
+  if(role==='operador') renderOpLogin();
+  if(role==='tv')       renderTV();
+}
+
+function exitRole(){
+  currentRole=null; opMod=null; opCat=null; opCurrent=null; stopTimer();
+  document.getElementById('welcome').style.display='flex';
+  document.getElementById('app').classList.remove('visible');
+}
+
+function renderAll(){
+  if(currentRole==='cliente')  renderCliente();
+  if(currentRole==='operador') renderOpDash();
+  if(currentRole==='tv')       renderTV();
+}
+
+// ════════════════════════════════════════════
+// CLIENTE
+// ════════════════════════════════════════════
+function catObj(id){ return CATS.find(c=>c.id===id); }
+
+function renderCliente(){
+  const g = document.getElementById('cat-grid');
+  g.innerHTML = '';
+  CATS.forEach(c=>{
+    const w = state.queues[c.id].length;
+    const btn = document.createElement('button');
+    btn.className = 'cat-card';
+    btn.style.borderColor = c.bkg;
+    btn.innerHTML = `
+      <div class="cat-icon" style="background:${c.bkg}">
+        <span style="font-size:28px;font-weight:900;color:${c.color}">${c.id}</span>
+      </div>
+      <div class="cat-name" style="color:${c.ico}">${c.name}</div>
+      <div class="cat-desc">${c.desc}</div>
+      <span class="cat-wait" style="color:${c.color};background:${c.bkg};border:1.5px solid ${c.color}33">
+        ${w>0?w+' en espera':'Sin espera ahora'}
+      </span>`;
+    btn.onclick = ()=> send({type:'TAKE_TICKET',cat:c.id});
+    g.appendChild(btn);
+  });
+}
+
+function closeTkt(){ document.getElementById('tkt-overlay').classList.remove('show'); }
+
+// ════════════════════════════════════════════
+// IMPRESIÓN TÉRMICA
+// ════════════════════════════════════════════
+function preparePrint(code, cat){
+  const now = new Date();
+  const hm  = pad2(now.getHours())+':'+pad2(now.getMinutes());
+  const fecha = now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('pt-num').textContent = code;
+  document.getElementById('pt-serv').textContent = cat.name;
+  document.getElementById('pt-info').textContent =
+    `Servicio: ${cat.desc}\nFecha: ${fecha}\nHora de emisión: ${hm}\n\nEspere ser llamado\nen la pantalla principal.`;
+}
+function printTicket(){ window.print(); }
+
+// ════════════════════════════════════════════
+// OPERADOR
+// ════════════════════════════════════════════
+function renderOpLogin(){
+  document.getElementById('op-login').style.display = opMod?'none':'block';
+  document.getElementById('op-dash').classList.toggle('vis',!!opMod);
+  if(opMod) renderOpDash();
+}
+
+function opLogin(){
+  opMod = parseInt(document.getElementById('sel-mod').value);
+  opCat = document.getElementById('sel-cat').value;
+  opCurrent=null; qFilter=opCat;
+  document.getElementById('op-login').style.display='none';
+  document.getElementById('op-dash').classList.add('vis');
+  renderOpDash();
+}
+
+function opLogout(){
+  opMod=null; opCat=null; opCurrent=null; stopTimer();
+  document.getElementById('op-login').style.display='block';
+  document.getElementById('op-dash').classList.remove('vis');
+}
+
+function getQueue(){
+  if(qFilter==='all') return CATS.flatMap(c=>state.queues[c.id].map(t=>({code:t,cat:t[0]})));
+  return state.queues[qFilter].map(t=>({code:t,cat:t[0]}));
+}
+
+// Formatea timestamp ms con hora local del navegador
+function fmtLocal(ms){
+  if(!ms) return '—';
+  const d = new Date(ms);
+  return pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());
+}
+
+function renderOpDash(){
+  if(!opMod) return;
+  const catLabel = opCat==='all'?'Todas':catObj(opCat).name;
+  document.getElementById('op-badge').textContent=`Módulo ${opMod} · ${catLabel}`;
+
+  const tabs = document.getElementById('q-tabs');
+  tabs.innerHTML='';
+  [{id:'all',name:'Todas'},...CATS].forEach(c=>{
+    const count=c.id==='all'?Object.values(state.queues).flat().length:state.queues[c.id].length;
+    const btn=document.createElement('button');
+    btn.className='q-tab'+(qFilter===c.id?' act':'');
+    btn.textContent=`${c.name} (${count})`;
+    btn.onclick=()=>{ qFilter=c.id; renderOpDash(); };
+    tabs.appendChild(btn);
+  });
+
+  const cur=opCurrent;
+  document.getElementById('op-cnum').textContent = cur?cur.code:'—';
+  document.getElementById('op-cnum').style.color = cur?catObj(cur.cat).color:'var(--gd)';
+  document.getElementById('op-ccat').textContent = cur?catObj(cur.cat).name:'';
+
+  const filtered=getQueue();
+  document.getElementById('q-count').textContent=filtered.length;
+  const ql=document.getElementById('q-list');
+  ql.innerHTML='';
+  if(!filtered.length){
+    ql.innerHTML='<div style="font-size:13px;color:var(--text3);padding:10px 0">Sin turnos en espera</div>';
+  } else {
+    filtered.slice(0,12).forEach(t=>{
+      const cat=catObj(t.cat);
+      const row=document.createElement('div');
+      row.className='q-item';
+      row.innerHTML=`<div class="qi-code" style="color:${cat.color}">${t.code}</div>
+        <div class="qi-cat">${cat.name}</div>
+        <button class="qi-del" onclick="removeQueue('${t.code}','${t.cat}')">Eliminar</button>`;
+      ql.appendChild(row);
+    });
+    if(filtered.length>12) ql.innerHTML+=`<div style="font-size:12px;color:var(--text3);padding:8px 0">… y ${filtered.length-12} más</div>`;
+  }
+
+  const hist=document.getElementById('hist-tags');
+  hist.innerHTML='';
+  if(!state.history.length){
+    hist.innerHTML='<span style="font-size:13px;color:var(--text3)">Sin historial aún</span>';
+  } else {
+    state.history.slice(0,20).forEach(h=>{
+      const cat=catObj(h.code[0]);
+      const tag=document.createElement('span');
+      tag.className='htag'+(h.del?' done':'');
+      tag.style.borderColor=h.del?'var(--border)':cat.color+'44';
+      tag.style.color=h.del?'var(--text3)':cat.color;
+      tag.textContent=h.code;
+      hist.appendChild(tag);
+    });
+  }
+}
+
+function renderMetrics(){
+  if(!report) return;
+  const r=report.resumen;
+  document.getElementById('m-total').textContent  = r.totalEmitidos;
+  document.getElementById('m-atend').textContent  = r.totalAtendidos;
+  document.getElementById('m-espera').textContent = r.enEspera;
+  document.getElementById('m-avgwait').textContent= r.promedioEsperaMin!=null?r.promedioEsperaMin+' min':'—';
+}
+
+function callNext(){
+  if(!opMod) return;
+  const cats=opCat==='all'?CATS.map(c=>c.id):[opCat];
+  send({type:'CALL_NEXT',mod:opMod,cats});
+  const handler=e=>{
+    const msg=JSON.parse(e.data);
+    if(msg.type==='STATE'){
+      const lc=msg.state.lastCalled;
+      if(lc&&lc.mod===opMod){ opCurrent={code:lc.code,cat:lc.cat}; startTimer(); renderOpDash(); }
+      ws.removeEventListener('message',handler);
+    }
+    if(msg.type==='NO_TURNS') ws.removeEventListener('message',handler);
+  };
+  ws.addEventListener('message',handler);
+}
+
+function recallCurrent(){ if(!opCurrent){alert('No hay turno actual');return;} send({type:'RECALL'}); }
+
+function closeTurn(){
+  if(!opCurrent){alert('No hay turno actual');return;}
+  send({type:'CLOSE_TURN',code:opCurrent.code,mod:opMod});
+  opCurrent=null; stopTimer(); renderOpDash();
+}
+
+function skipCurrent(){
+  if(!opCurrent){alert('No hay turno actual');return;}
+  if(!confirm('¿Saltar el turno '+opCurrent.code+'?')) return;
+  send({type:'SKIP_CURRENT',code:opCurrent.code,mod:opMod});
+  opCurrent=null; stopTimer(); renderOpDash();
+}
+
+function removeQueue(code,cat){ send({type:'REMOVE_QUEUE',code,cat}); }
+
+function resetAll(){
+  if(!confirm('¿Reiniciar todos los turnos del día? El historial se perderá.')) return;
+  send({type:'RESET_ALL'}); opCurrent=null; stopTimer();
+}
+
+function startTimer(){
+  stopTimer(); timerStart=Date.now();
+  const el=document.getElementById('op-timer');
+  el.classList.remove('hidden');
+  timerInterval=setInterval(()=>{
+    const sec=Math.floor((Date.now()-timerStart)/1000);
+    const m=Math.floor(sec/60),s=sec%60;
+    el.textContent=`⏱ En atención: ${m}m ${pad2(s)}s`;
+  },1000);
+}
+
+function stopTimer(){
+  clearInterval(timerInterval); timerInterval=null; timerStart=null;
+  const el=document.getElementById('op-timer');
+  if(el){ el.textContent=''; el.classList.add('hidden'); }
+}
+
+// ════════════════════════════════════════════
+// REPORTES
+// ════════════════════════════════════════════
+function toggleReporte(){
+  const panel=document.getElementById('rpt-panel');
+  panel.classList.toggle('hidden');
+  if(!panel.classList.contains('hidden')){ send({type:'GET_REPORT'}); panel.scrollIntoView({behavior:'smooth'}); }
+}
+
+function renderReport(){
+  if(!report) return;
+  const r=report.resumen;
+  document.getElementById('rk-total').textContent    = r.totalEmitidos;
+  document.getElementById('rk-atend').textContent    = r.totalAtendidos;
+  document.getElementById('rk-salt').textContent     = r.totalSaltados;
+  document.getElementById('rk-cola').textContent     = r.enEspera;
+  document.getElementById('rk-espera-prom').textContent = r.promedioEsperaMin!=null?r.promedioEsperaMin+' min':'—';
+  document.getElementById('rk-aten-prom').textContent   = r.promedioAtencionMin!=null?r.promedioAtencionMin+' min':'—';
+
+  const catTb=document.getElementById('rpt-cat-tbody');
+  catTb.innerHTML='';
+  Object.values(report.porCategoria).forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${catNameFull(c.cat)}</td><td><strong>${c.total}</strong></td>
+      <td>${c.avgWait!=null?Math.round(c.avgWait/60*10)/10+' min':'—'}</td>
+      <td>${c.avgAttend!=null?Math.round(c.avgAttend/60*10)/10+' min':'—'}</td>`;
+    catTb.appendChild(tr);
+  });
+
+  const modTb=document.getElementById('rpt-mod-tbody');
+  modTb.innerHTML='';
+  if(!report.porModulo.length){
+    modTb.innerHTML='<tr><td colspan="4" style="color:var(--text3)">Sin datos aún</td></tr>';
+  } else {
+    report.porModulo.forEach(m=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>Módulo ${m.mod}</td><td><strong>${m.total}</strong></td>
+        <td>${m.avgWait!=null?Math.round(m.avgWait/60*10)/10+' min':'—'}</td>
+        <td>${m.avgAttend!=null?Math.round(m.avgAttend/60*10)/10+' min':'—'}</td>`;
+      modTb.appendChild(tr);
+    });
+  }
+
+  const detTb=document.getElementById('rpt-detail-tbody');
+  detTb.innerHTML='';
+  if(!report.detalle.length){
+    detTb.innerHTML='<tr><td colspan="8" style="color:var(--text3)">Sin turnos registrados aún</td></tr>';
+  } else {
+    report.detalle.forEach(t=>{
+      // Usar hora local del navegador (más precisa que UTC-5 del servidor)
+      const emitido = fmtLocal(t.issuedAt);
+      const llamado = fmtLocal(t.calledAt);
+      const scls = t.estado==='Saltado'?'sp-skip':t.estado==='Cerrado'?'sp-done':
+                   t.estado==='En atención'?'sp-attend':'sp-wait';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><strong>${t.turno}</strong></td><td>${t.categoria}</td><td>${t.modulo}</td>
+        <td>${emitido}</td><td>${llamado}</td>
+        <td>${t.espera}</td><td>${t.atencion}</td>
+        <td><span class="sp ${scls}">${t.estado}</span></td>`;
+      detTb.appendChild(tr);
+    });
+  }
+}
+
+function downloadCSV(){ window.open('/reporte.csv','_blank'); }
+function catNameFull(id){ return {A:'Asesoría',T:'Tesorería',S:'Solidaridad'}[id]||id; }
+
+// ════════════════════════════════════════════
+// TV
+// ════════════════════════════════════════════
+function renderTV(){
+  const last=state.lastCalled;
+  const big=document.getElementById('tv-big');
+  if(last){
+    const c=catObj(last.cat);
+    const m=MODS.find(m=>m.id===last.mod);
+    big.textContent=last.code; big.style.color=c.color;
+    document.getElementById('tv-bigmod').textContent=m?m.name:'';
+    document.getElementById('tv-bigcat').textContent=c.name;
+  } else {
+    big.textContent='—'; big.style.color='var(--border)';
+    document.getElementById('tv-bigmod').textContent='';
+    document.getElementById('tv-bigcat').textContent='';
+  }
+
+  const rec=document.getElementById('tv-recents');
+  rec.innerHTML='';
+  const hist=state.history.filter(h=>!h.del).slice(0,5);
+  if(!hist.length){
+    rec.innerHTML='<div style="font-size:13px;color:var(--text3);padding:8px 0">Los turnos aparecerán aquí</div>';
+  } else {
+    hist.forEach(h=>{
+      const c=catObj(h.code[0]);
+      const div=document.createElement('div');
+      div.className='tv-rc';
+      div.innerHTML=`<span class="rc-num" style="color:${c.color}">${h.code}</span>
+        <span class="rc-pill pill-${c.id}">${c.name}</span>`;
+      rec.appendChild(div);
+    });
+  }
+
+  const mods=document.getElementById('tv-mods');
+  mods.innerHTML='';
+  MODS.forEach(m=>{
+    const cur=state.calledByMod[m.id];
+    const div=document.createElement('div');
+    div.className='tv-mod-row';
+    const col=cur?(catObj(cur[0])||{color:'var(--gd)'}).color:'var(--text3)';
+    div.innerHTML=`<span class="tv-mn"><span class="mod-dot ${cur?'on':'off'}"></span>${m.name}</span>
+      <span class="tv-mc" style="color:${col}">${cur||'—'}</span>`;
+    mods.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════
+// NOTICIAS / TICKER / RELOJ
+// ════════════════════════════════════════════
+let newsIdx=0, tickerIdx=0;
+function cycleNews(){
+  const n=NEWS[newsIdx%NEWS.length];
+  document.getElementById('n-tag').textContent  =n.tag;
+  document.getElementById('n-title').textContent=n.title;
+  document.getElementById('n-body').textContent =n.body;
+  newsIdx++;
+}
+function cycleTicker(){
+  document.getElementById('ticker-text').textContent=TICKERS[tickerIdx%TICKERS.length];
+  tickerIdx++;
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function updateClock(){
+  const el=document.getElementById('tv-clock');
+  if(!el) return;
+  const now=new Date();
+  el.textContent=pad2(now.getHours())+':'+pad2(now.getMinutes())+':'+pad2(now.getSeconds());
+}
+
+// ════════════════════════════════════════════
+// ARRANQUE
+// ════════════════════════════════════════════
+connectWS();
+cycleNews(); cycleTicker();
+setInterval(updateClock,1000);
+setInterval(cycleNews,12000);
+setInterval(cycleTicker,9000);
+updateClock();
+</script>
+</body>
+</html>
